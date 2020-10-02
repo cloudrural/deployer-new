@@ -1,0 +1,38 @@
+---
+ - name: Installing the Webserver
+   package:
+     name: "{{ item }}"
+     state: present
+     update_cache: yes
+   loop:
+     - "{{ package_manager }}"
+     - "{{ web_server }}"
+   notify: 
+      - start-webserver
+
+ - name: Configure the webserver
+   template:
+      src: "tomcat.conf"
+      dest: "{{ server_block }}"
+  
+ - name: Copy the webpages
+   copy:
+      src: "{{ web_pro }}"
+      dest: "{{ doc_root }}"
+   tags:
+    - never 
+    - webpages
+ - name: Create symbolic link 
+   file:
+    src: "{{ server_block }}"
+    dest: "/etc/nginx/sites-enabled/tomcat.conf"
+    state: link
+   
+   notify: 
+      - restart-webserver
+
+
+ - name: Verify the webserver
+   wait_for:
+      port: "{{ web_port }}"
+      timeout: 1

@@ -1,0 +1,57 @@
+---
+ - name: Install tomcat and configure
+   block: 
+      - name: Creating the directory for topmcat
+        file:
+          dest: "{{ CATALINA_HOME }}"
+          state: directory
+      - name: Download tomcat
+        get_url:
+           url: "{{ item }}"
+           dest: "{{ APP_HOME_DIR }}"
+        loop:
+          - "{{ TOMCAT_URL }}"
+      - name: Extracting the tomcat
+        unarchive:
+            src: "{{ APP_HOME_DIR }}/{{ TOMCAT_ZIP_FILE }}"
+            dest: "{{ CATALINA_HOME }}"
+            remote_src: "{{ IS_REMOTE_SRC }}"
+            extra_opts:
+              - --strip-components=1
+      - name: Adding export variables in .bashrc
+        lineinfile:
+           path: ~/.bashrc
+           insertbefore: EOF
+           line: "{{ item }}"
+        loop:
+           - '###### Created using ansible scripts ########'
+           - 'export CATALINA_HOME={{ TOMCAT_HOME_DIR }}'
+           - 'export PATH={{ TOMCAT_HOME_DIR }}/bin:$PATH'
+      - name: Copy the war to webapps
+        shell: "cp -prvf ~/App-Info-release {{ CATALINA_HOME }}/webapps/"
+  
+      - name: coping Config.properties file
+        template:
+           src: "Config.properties"
+           dest: "{{ CATALINA_HOME }}/webapps/Config.properties"
+      - name: Create users in Tomcat
+        template:
+           src: "tomcat-users.xml"
+           dest: "{{ CATALINA_HOME }}/conf/tomcat-users.xml"
+      - name: Allow Manager and host manager
+        block:
+          - name : Host-manager
+            template:
+              src: "context.xml"
+              dest: "{{ CATALINA_HOME }}/webapps/host-manager/META-INF/context.xml"
+          - name: manager
+            template:
+               src: "context.xml"
+               dest: "{{ CATALINA_HOME }}/webapps/manager/META-INF/context.xml" 
+              
+      - name: starting tomcat
+        shell: |
+          source ~/.bashrc
+          nohup sh catalina.sh run >> ../logs/sarath.log &
+        args:
+         chdir: "{{ CATALINA_HOME }}/bin"

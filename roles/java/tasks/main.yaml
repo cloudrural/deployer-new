@@ -1,0 +1,33 @@
+---
+ - name: Download-java
+   block:
+     - name: Create the floder for Java
+       file:
+         dest: "{{ item }}"
+         state: directory
+       loop:
+         - "{{ JAVA_HOME_DIR }}"
+
+     - name: Download the java
+       get_url:
+         url: "{{ item }}"
+         dest: "{{ APP_HOME_DIR }}"
+       loop:
+         - "{{ JAVA_URL }}"
+     - name: Extracing the java
+       unarchive:
+           src: "{{ APP_HOME_DIR }}/{{ JAVA_ZIP_FILE }}"
+           dest: "{{ JAVA_HOME_DIR }}"
+           remote_src: "{{ IS_REMOTE_SRC }}"
+           extra_opts:
+                 - --strip-components=1
+     - name: create ENV for JAVA
+       become: true
+       lineinfile:
+          path: ~/.bashrc
+          insertbefore: EOF
+          line: "{{ item }}"
+       loop:
+           - '###### Created using ansible scripts ########'
+           - 'export JAVA_HOME={{ JAVA_HOME_DIR }}'
+           - 'export PATH=${{ JAVA_HOME_DIR }}/bin:$PATH'

@@ -1,0 +1,62 @@
+---
+ - name: Installing the dbserver and Configure root password
+   block:
+    - name: Installing the dbserver
+      package:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      loop:
+        - "{{ package_manager }}"
+        - mysql-server
+        - python-pymysql
+      notify:
+       - start-db
+
+# Configure DB
+# sets the root password
+    - name: Set root password
+      mysql_user:
+         name: root
+         password: "{{ DB_ROOT_PASS }}"
+         state: yes
+   when: CREATE_DB_SERVER == true
+   tags:
+     - never
+     - create-db-server
+     - install-all
+
+# Create DB and user
+
+ - name: Create database and user
+   block:
+     - name: Create database
+       mysql_db:
+           name: "{{ MYSQL_DB_NAME }}"
+           state: present
+
+     - name: Create the user 
+       mysql_user:
+           name: "{{ MYSQL_DB_USER }}"
+           password: "{{ MYSQL_DB_PASS }}"
+           priv: '*{{ MYSQL_DB_NAME }}*:ALL,GRANT'
+           state: present
+   tags:
+     - never
+     - create-db-user
+
+# Creating db Objects
+ - name: Creating objects
+   block:
+     - name: Creating the objects
+       template:
+          src: "objects.sql"
+          dest: "{{ DB_HOME }}/objects.sql"
+     - name: Execute the objects
+       shell: "/usr/bin/mysql -u root --password={{ DB_ROOT_PASS }} <objects.sql"
+       args:
+        chdir: "{{ DB_HOME }}"
+   tags:
+     - never
+     - create-object
+     - install-all

@@ -1,0 +1,33 @@
+---
+# webservers_vars
+package_manager: apt
+web_server: nginx
+web_pages: "index.html"
+doc_root: /var/www/html
+web_pro: "infotern"
+web_port: 22
+server_block: /etc/nginx/sites-available/tomcat.conf
+
+# java vars
+JAVA_URL: "https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.8%2B10/OpenJDK11U-jre_x64_linux_hotspot_11.0.8_10.tar.gz"
+APP_HOME_DIR: /opt
+JAVA_HOME_DIR: "{{ APP_HOME_DIR }}/java"
+IS_REMOTE_SRC: yes
+JAVA_ZIP_FILE: "OpenJDK11U-jre_x64_linux_hotspot_11.0.8_10.tar.gz"
+
+# dbserver vars
+DB_ROOT_PASS: root
+CREATE_DB_SERVER: true
+MYSQL_DB_NAME: "sarath-db"
+MYSQL_DB_USER: "sarath"
+MYSQL_DB_PASS: "sarath10"
+DB_HOME: "{{ APP_HOME_DIR }}"
+# appserver vars
+TOMCAT_HOME_DIR: "{{ APP_HOME_DIR }}/tomcat"
+TOMCAT_URL: "https://downloads.apache.org/tomcat/tomcat-9/v9.0.38/bin/apache-tomcat-9.0.38.tar.gz"
+TOMCAT_ZIP_FILE: "apache-tomcat-9.0.38.tar.gz"
+db_user: root
+db_port: 3306
+db_password: "root"
+db_host: localhost
+db_name: sarath-db
